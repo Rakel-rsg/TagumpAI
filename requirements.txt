@@ -1,0 +1,26 @@
+# Core scientific computing
+numpy==1.24.4
+pandas==2.2.3
+
+# Excel support — pandas requires >= 3.1.0 for .xlsx reading
+openpyxl>=3.1.0
+
+# Geospatial stack (required by osmnx)
+networkx==3.3
+shapely==2.1.2
+pyproj==3.7.1
+pyogrio==0.12.1
+geopandas==1.1.3
+osmnx==2.0.7
+
+# Optimization
+gurobipy==9.5.2
+
+# Visualization
+matplotlib==3.6.0
+
+# HTTP (used by osmnx to query OpenStreetMap)
+requests==2.31.0
+
+# Required by osmnx for nearest-node search on unprojected graphs
+scikit-learn==1.1.2
