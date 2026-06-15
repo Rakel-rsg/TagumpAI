@@ -1,4 +1,5 @@
 import os
+import json
 import math
 import pandas as pd
 import numpy as np
@@ -171,3 +172,52 @@ def instance_creation_simple():
     total_straws_available = 10
 
     return all_nodes, farmer_nodes, technicians, office_node, initial_straws, distance, origin_of, positions, total_straws_available
+
+
+def instance_from_json(filepath):
+    """
+    Load an instance from a JSON file (see data/notebook_instance.json for format).
+
+    The JSON must contain:
+      adjacency            — n×n matrix (0 = no direct edge)
+      technician_nodes     — list of node IDs
+      farmer_nodes         — list of node IDs
+      office_node          — single node ID
+      initial_straws       — list of straw counts, one per technician
+      total_straws_available — integer
+
+    All-pairs shortest paths are computed via Dijkstra at load time.
+    Node positions for plotting are derived from spring layout (seed=42).
+    Technicians are named T0, T1, ... in order of technician_nodes.
+    """
+    with open(filepath) as f:
+        data = json.load(f)
+
+    adj = np.array(data["adjacency"], dtype=float)
+    n = adj.shape[0]
+
+    G_nx = nx.Graph()
+    for i in range(n):
+        for j in range(i + 1, n):
+            if adj[i, j] > 0:
+                G_nx.add_edge(i, j, weight=adj[i, j])
+
+    full_dist = np.full((n, n), np.inf)
+    np.fill_diagonal(full_dist, 0.0)
+    for i in range(n):
+        for j, d in nx.single_source_dijkstra_path_length(G_nx, i, weight="weight").items():
+            full_dist[i, j] = d
+
+    positions = nx.spring_layout(G_nx, seed=42)
+
+    tech_nodes   = data["technician_nodes"]
+    farmer_nodes = data["farmer_nodes"]
+    office_node  = data["office_node"]
+    total_straws_available = data["total_straws_available"]
+
+    technicians    = [f"T{i}" for i in range(len(tech_nodes))]
+    origin_of      = {t: node for t, node in zip(technicians, tech_nodes)}
+    initial_straws = {t: s    for t, s    in zip(technicians, data["initial_straws"])}
+    all_nodes      = list(range(n))
+
+    return all_nodes, farmer_nodes, technicians, office_node, initial_straws, full_dist, origin_of, positions, total_straws_available

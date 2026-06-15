@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
@@ -6,12 +7,12 @@ from file_interface import *
 from solvers import *
 
 
-def plot_routes(routes, origin_of, farmers, office_node, positions):
+def plot_routes(arcs, origin_of, farmers, office_node, positions):
     """Plot the node graph and technician routes using NetworkX.
 
     Parameters
     ----------
-    routes      : dict  technician_id -> list of node IDs (ordered path)
+    arcs        : dict  technician_id -> list of (i, j) arc tuples (all active x vars)
     origin_of   : dict  technician_id -> home node ID
     farmers     : list  of farmer node IDs
     office_node : node ID of the office
@@ -35,11 +36,11 @@ def plot_routes(routes, origin_of, farmers, office_node, positions):
             node_colors.append("lightgray")
 
     palette = ["tab:red", "tab:blue", "tab:purple", "tab:orange", "tab:cyan"]
-    route_colors = {t: palette[i % len(palette)] for i, t in enumerate(routes)}
+    route_colors = {t: palette[i % len(palette)] for i, t in enumerate(arcs)}
 
-    for t, path in routes.items():
+    for t, arc_list in arcs.items():
         color = route_colors[t]
-        for a, b in zip(path, path[1:]):
+        for a, b in arc_list:
             G.add_edge(a, b, color=color)
 
     edge_colors = [G[u][v]["color"] for u, v in G.edges()]
@@ -86,34 +87,40 @@ if __name__ == "__main__":
     #  initial_straws, distance, origin_of,
     #  positions, total_straws_available) = instance_creation_simple()
 
-    # routes = solve_technician_routing(
-    #     all_nodes=all_nodes,
-    #     farmers=farmer_nodes,
-    #     technicians=technicians,
-    #     office_node=office_node,
-    #     initial_straws=initial_straws,
-    #     total_straws_available=total_straws_available,
-    #     full_distance=distance,
-    #     origin_of=origin_of,
-    #     verbose=True
-    # )
+    # --- Notebook instance (from data/notebook_instance.json) ---
+    (all_nodes, farmer_nodes, technicians, office_node,
+     initial_straws, full_dist, origin_of,
+     positions, total_straws_available) = instance_from_json(
+        os.path.join("data", "notebook_instance.json")
+    )
 
-    # print("\nRoutes:")
-    # for t, path in routes.items():
-    #     print(f"  {t}: {' -> '.join(str(n) for n in path)}")
-
-    # plot_routes(routes, origin_of, farmer_nodes, office_node, positions)
-
-    # --- Full real-world instance (uncomment to run) ---
-    all_nodes_ordered, farmer_nodes, technicians, office_node, initial_straws_new, distance_matrix, origin_of = instance_creation()
-    total_straws_available = 200
-    routes = solve_technician_routing(
-        all_nodes=all_nodes_ordered,
+    routes, arcs = solve_technician_routing(
+        all_nodes=all_nodes,
         farmers=farmer_nodes,
         technicians=technicians,
         office_node=office_node,
-        initial_straws=initial_straws_new,
+        initial_straws=initial_straws,
         total_straws_available=total_straws_available,
-        full_distance=distance_matrix,
+        full_distance=full_dist,
         origin_of=origin_of,
     )
+
+    print("\nRoutes:")
+    for t, path in routes.items():
+        print(f"  {t}: {' -> '.join(str(n) for n in path)}")
+
+    plot_routes(arcs, origin_of, farmer_nodes, office_node, positions)
+
+    # --- Full real-world instance (uncomment to run) ---
+    # all_nodes_ordered, farmer_nodes, technicians, office_node, initial_straws_new, distance_matrix, origin_of = instance_creation()
+    # total_straws_available = 200
+    # routes = solve_technician_routing(
+    #     all_nodes=all_nodes_ordered,
+    #     farmers=farmer_nodes,
+    #     technicians=technicians,
+    #     office_node=office_node,
+    #     initial_straws=initial_straws_new,
+    #     total_straws_available=total_straws_available,
+    #     full_distance=distance_matrix,
+    #     origin_of=origin_of,
+    # )

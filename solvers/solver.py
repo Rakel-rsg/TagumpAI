@@ -1,5 +1,46 @@
 import gurobipy as gp
 from gurobipy import GRB
+import os
+
+
+def _find_subtours(succ, all_nodes, origin):
+    """
+    Detect directed cycles in `succ` (node -> successor) that do NOT contain
+    `origin`.  Returns a list of sets, each being the nodes of one subtour.
+
+    Because flow conservation forces in-degree == out-degree at every node,
+    the active arcs form disjoint simple paths and simple cycles.  We exploit
+    this structure: follow each unvisited node's successor chain and check
+    whether we close a loop before reaching a node we already processed.
+    """
+    subtours = []
+    visited  = set()
+
+    for start in all_nodes:
+        if start in visited:
+            continue
+
+        path       = []
+        path_index = {}   # node -> position in `path`
+        current    = start
+
+        while current not in visited:
+            if current in path_index:
+                # closed a cycle
+                cycle = path[path_index[current]:]
+                if origin not in cycle:
+                    subtours.append(set(cycle))
+                break
+            path_index[current] = len(path)
+            path.append(current)
+            current = succ.get(current)   # None if no outgoing arc
+            if current is None:
+                break
+
+        visited.update(path)
+
+    return subtours
+
 
 def solve_technician_routing(
     all_nodes,
@@ -293,17 +334,48 @@ def solve_technician_routing(
     #         )
 
 
-    m.optimize()
+    m.Params.LazyConstraints = 1
 
+    def subtour_callback(model, where):
+        if where != GRB.Callback.MIPSOL:
+            return
+
+        x_sol = {k: model.cbGetSolution(v) for k, v in x.items()}
+
+        for t in technicians:
+            origin = origin_of[t]
+            succ = {
+                i: j
+                for (i, j, tt), val in x_sol.items()
+                if tt == t and val > 0.5 and i != j
+            }
+            for subtour in _find_subtours(succ, all_nodes, origin):
+                model.cbLazy(
+                    gp.quicksum(
+                        x[i, j, t]
+                        for i in subtour
+                        for j in subtour
+                        if i != j
+                    ) <= len(subtour) - 1
+                )
+
+    m.optimize(subtour_callback)
+    m.write(os.path.join("logs", "model.lp"))
     routes = {}
+    arcs   = {t: [] for t in technicians}
 
     if m.SolCount > 0:
 
         print("\nOptimal refill amounts per technician:")
         for t in technicians:
-            print(f"  {t}: RA = {int(round(RA[t].X))}")#  visits = {int(round(visits[t].X))}")
+            print(f"  {t}: RA = {int(round(RA[t].X))}")
 
         x_vals = m.getAttr("X", x)
+
+        # Collect all active arcs per technician
+        for (i, j, tt), val in x_vals.items():
+            if val > 0.5 and i != j:
+                arcs[tt].append((i, j))
 
         for t in technicians:
 
@@ -337,4 +409,4 @@ def solve_technician_routing(
 
             routes[t] = path
 
-    return routes
+    return routes, arcs

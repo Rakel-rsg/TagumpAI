@@ -1,0 +1,22 @@
+{
+  "description": "Instance extracted from New_TechRouting.ipynb. 12-node sparse graph. Distances are direct edge weights; all-pairs shortest paths are computed at load time via Dijkstra. 2 technicians, 9 farmers, office=node 1. Notebook optimal cost: 219.",
+  "adjacency": [
+    [ 0, 15,  0,  0, 24,  0, 18,  0,  0,  0,  0,  0],
+    [15,  0, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0, 22,  0, 18, 16,  0,  0,  0, 20,  0,  0,  0],
+    [ 0,  0, 18,  0,  0, 12,  0,  0,  0,  0,  0,  0],
+    [24,  0, 16,  0,  0,  0, 25, 12, 24,  0,  0,  0],
+    [ 0,  0,  0, 12,  0,  0,  0,  0, 12,  0,  0, 22],
+    [18,  0,  0,  0, 25,  0,  0, 15,  0, 22,  0,  0],
+    [ 0,  0,  0,  0, 12,  0, 15,  0, 30,  0, 25,  0],
+    [ 0,  0, 20,  0, 24, 12,  0, 30,  0,  0, 19, 19],
+    [ 0,  0,  0,  0,  0,  0, 22,  0,  0,  0, 19,  0],
+    [ 0,  0,  0,  0,  0,  0,  0, 25, 19, 19,  0, 21],
+    [ 0,  0,  0,  0,  0, 22,  0,  0, 19,  0, 21,  0]
+  ],
+  "technician_nodes": [4, 8],
+  "farmer_nodes": [0, 2, 3, 5, 6, 7, 9, 10, 11],
+  "office_node": 1,
+  "initial_straws": [2, 1],
+  "total_straws_available": 15
+}
