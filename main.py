@@ -88,32 +88,32 @@ if __name__ == "__main__":
     #  positions, total_straws_available) = instance_creation_simple()
 
     # --- Notebook instance (from data/notebook_instance.json) ---
-    (all_nodes, farmer_nodes, technicians, office_node,
-     initial_straws, full_dist, origin_of,
-     positions, total_straws_available) = instance_from_json(
-        os.path.join("data", "notebook_instance.json")
-    )
+    # (all_nodes, farmer_nodes, technicians, office_node,
+    #  initial_straws, full_dist, origin_of,
+    #  positions, total_straws_available) = instance_from_json(
+    #     os.path.join("data", "notebook_instance.json")
+    # )
 
-    routes, arcs = solve_technician_routing(
-        all_nodes=all_nodes,
-        farmers=farmer_nodes,
-        technicians=technicians,
-        office_node=office_node,
-        initial_straws=initial_straws,
-        total_straws_available=total_straws_available,
-        full_distance=full_dist,
-        origin_of=origin_of,
-    )
+    # routes, arcs = solve_technician_routing(
+    #     all_nodes=all_nodes,
+    #     farmers=farmer_nodes,
+    #     technicians=technicians,
+    #     office_node=office_node,
+    #     initial_straws=initial_straws,
+    #     total_straws_available=total_straws_available,
+    #     full_distance=full_dist,
+    #     origin_of=origin_of,
+    # )
 
-    print("\nRoutes:")
-    for t, path in routes.items():
-        print(f"  {t}: {' -> '.join(str(n) for n in path)}")
+    # print("\nRoutes:")
+    # for t, path in routes.items():
+    #     print(f"  {t}: {' -> '.join(str(n) for n in path)}")
 
-    plot_routes(arcs, origin_of, farmer_nodes, office_node, positions)
+    # plot_routes(arcs, origin_of, farmer_nodes, office_node, positions)
 
     # --- Full real-world instance (uncomment to run) ---
-    # all_nodes_ordered, farmer_nodes, technicians, office_node, initial_straws_new, distance_matrix, origin_of = instance_creation()
-    # total_straws_available = 200
+    all_nodes_ordered, farmer_nodes, technicians, office_node, initial_straws_new, distance_matrix, origin_of = instance_creation()
+    total_straws_available = 200
     # routes = solve_technician_routing(
     #     all_nodes=all_nodes_ordered,
     #     farmers=farmer_nodes,
@@ -124,3 +124,15 @@ if __name__ == "__main__":
     #     full_distance=distance_matrix,
     #     origin_of=origin_of,
     # )
+    routes = solve_technician_routing_hexaly(
+        all_nodes=all_nodes_ordered,
+        farmers=farmer_nodes,
+        technicians=technicians,
+        office_node=office_node,
+        initial_straws=initial_straws_new,
+        total_straws_available=total_straws_available,
+        full_distance=distance_matrix,
+        origin_of=origin_of,
+        time_limit=100,
+        verbose=True
+    )
